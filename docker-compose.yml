@@ -1,0 +1,53 @@
+version: '3.0'  
+
+services:
+  database1:
+    image: postgres
+    #hostname: database1
+    container_name: database1
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_USER: dockeruser
+      POSTGRES_PASSWORD: Revanth@1998
+      POSTGRES_DB: dockerdb
+    networks:
+    - network
+    restart: always
+    volumes:
+    - "database:/var/lib/postgresql/data"
+
+
+  chatapp:
+    build:
+      context: /home/revanth/DockerApplication
+    ports:
+    - "80:8000"
+    hostname: chatapp
+    container_name: chatapp
+    networks:
+    - network
+    #depends_on:
+    depends_on:
+    - database1
+    restart: always
+
+  nginx:
+    build:
+      context: /home/revanth/DockerApplication/nginx/
+    ports:
+    - "8000:80"
+    hostname: nginx
+    networks:
+    - network
+    depends_on:
+    - chatapp
+    restart: always
+
+  
+networks:
+  network:
+    driver: bridge
+
+volumes:
+  database:

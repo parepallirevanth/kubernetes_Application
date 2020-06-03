@@ -1,0 +1,114 @@
+#Prepaing Application For AKS
+
+STEP: 1
+--------
+# Use the sample docker-compose.yaml file to create the container image, download the Redis image, and start the application:
+docker-compose up -d
+docker images
+docker ps
+# test application locally
+
+STEP: 2   PUSH IMAGE TO ACR
+--------  ------------------
+#Login to Azure
+az login
+#create container REGISTRY
+
+az group create --name myContainerGroup --location eastus
+az acr create --resource-group myContainerGroup --name <acrName> --sku Basic
+
+#Log in to the container registry
+
+az acr login --name <acrName>
+
+#To get the login server address, use the az acr list command and query for the loginServer as follows:
+
+az acr list --resource-group myContainerGroup --query "[].{acrLoginServer:loginServer}" --output table
+
+#Now, tag your local azure-vote-front image with the acrLoginServer address of the container registry. To indicate the image version, add :v1 to the end of the image name:
+
+docker tag azure-vote-front <acrLoginServer>/azure-vote-front:v1
+
+#push images to repository
+
+docker push <acrLoginServer>/azure-vote-front:v1
+
+#List image in repository
+
+az acr repository list --name <acrName> --output table
+
+STEP: 3  DEPLOY KUBE Application
+-------
+#Service principal aad generator
+
+az provider register -n Microsoft.ContainerService
+#CREATE a Resource group
+az group create --name myAKSRG --location eastus
+
+#CREATE kube cluster
+
+az aks create --resource-group myAKSRG  --name myAKSCluster  --node-count 2  --generate-ssh-keys   --attach-acr revanthacr
+
+#Install aks cli
+
+az aks install-cli
+
+#Connect cluster using kubectl
+
+az aks get-credentials --resource-group myAKSRG --name myAKSCluster
+
+#VERIFY Nodes
+
+kubectl get nodes
+
+STEP: 4   RUN Application
+--------  ---------------
+#DEPLOY Application 
+
+kubectl apply -f postgres-deploymeny.yaml
+
+# Check podes
+
+kubectl get po
+
+#test Application
+
+kubectl get service azure-vote-front --watch
+
+#NGINX_CONTROLLER
+
+$ kubectl apply -f nginx-ingress-controller.yaml
+ deployment "nginx-ingress-controller" created
+
+$ kubectl -n kube-system get podes
+
+$ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=nginxsvc/O=nginxsvc"
+ Generating a 2048 bit RSA private key
+ .............................................+++
+ ...........+++
+ writing new private key to 'tls.key'
+ -----
+# create tls-secret 
+kubectl create secret tls tls-secret --key tls.key --cert tls.crt
+
+
+
+#LOad balancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatapp-front
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8000
+  selector:
+    app: chatapp-front
+
+
+
+# NGINX_CONTROLLER
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/cloud/deploy.yaml
+

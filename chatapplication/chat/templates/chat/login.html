@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="title" content="project">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="language" content="English">
+
+  <title>ChatAPP</title>
+
+
+  <!-- bootstrap file -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- bootstrap file-->
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+  <!-- main css -->
+  <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
+
+
+  <!-- message here -->
+
+  {% if messages %}
+  {% for message in messages %}
+
+  <script>
+    alert("{{ message }}");
+  </script>
+
+  {% endfor %}
+  {% endif %}
+
+
+</head>
+<body class="container-fluid">
+
+
+  <header class="row">
+
+    <!-- navbar-->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button class="navbar-toggle" data-toggle="collapse" data-target="#mainNavBar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" class="styleheader" href="index" >ChatAPP</a>
+        </div>
+        <div class="collapse navbar-collapse centered" id="mainNavBar">
+          <ul class="nav navbar-nav navbar-right">
+          
+            <li><a href="index">Home</a></li>
+          
+          <!--{% if user.is_authenticated %}
+            <li Hello, {{user.username}}></li>
+            <li><a href="accounts/logout"><span class="glyphicon glyphicon-log-out"></span> &nbsp; Logout</a></li>
+            {% else %}
+            <li><a href="accounts/register" ><span class="glyphicon glyphicon-user"></span> &nbsp; Sign up</a></li>
+            <li><a href="accounts/login"><span class="glyphicon glyphicon-log-in"></span> &nbsp; Log in</a></li>
+            {% endif %}-->
+
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <br/>
+  <br>
+  <br> 
+</body>
+
+<body>
+<div class="content-section col-md-8 col-md-offset-2">
+<center>
+  <form action="login" method="POST"">
+    {% csrf_token %}
+      <!--<center>
+        <input type="text" name= "User_Name" placeholder="UserName"><br>
+        <input type="password" name="password" placeholder="password"><br>
+        <input type="submit" >
+    </center>-->
+
+<div class="login-box">
+  <h1>Login</h1>
+  <div class="textbox">
+    <i class="fas fa-user"></i>
+    <input type="text" placeholder="Username" name="User_Name">
+  </div>
+
+  <div class="textbox">
+    <i class="fas fa-lock"></i>
+    <input type="password" placeholder="Password" name="password">
+  </div>
+  <input type="submit" class="btn" value="Log in">
+
+
+</div>
+</center>
+        <br />
+     <!--   <center>
+          <sub><a href="change"  style="text-decoration: none; color: blue; padding:3%; cursor:pointer;">Forgot password?</a></sub>
+      </center>
+    -->
+</form>
+</div>
+
+</body>
+</html>

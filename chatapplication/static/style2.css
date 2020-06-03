@@ -1,0 +1,9 @@
+body{
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background: url(https://live.staticflickr.com/4492/37682083741_ab4b7fa953_b.jpg) no-repeat;
+    background-size: cover;
+    backdrop-filter: blur(10000px);
+    -webkit-backdrop-filter: blur(10px);
+  }

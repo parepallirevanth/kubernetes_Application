@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatapp-one
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatapp-one
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5 
+  template:
+    metadata:
+      labels:
+        app: chatapp-one
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+      - name: chatapp-one
+        image: revanthacr.azurecr.io/kubeapp_chatapp:v1
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: 250m
+          limits:
+            cpu: 500m
+          #value: "Welcome to Azure Kubernetes Service (AKS)"
+        env:
+        - name: TITLE
+          value: "Welcome AKS Ingress chatapp"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatapp-one
+  labels:
+    run: chatapp-one
+spec:
+  #type: NodePort
+  ports:
+  - port: 80
+#    nodePort: 30303
+    targetPort: 8000
+#    protocol: TCP
+#    name: http
+  selector:
+    app: chatapp-one

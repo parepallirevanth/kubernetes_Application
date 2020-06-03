@@ -1,0 +1,77 @@
+
+# https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/azure.md
+
+#Creating an Azure DNS zone
+$ az group create -n externaldns -l eastus
+$ az network dns zone create -g externaldns -n example.com
+
+{
+  "appId": "3f6b741e-39c1-4ffd-8f18-9413ab4e58f3",
+  "displayName": "ExternalDnsServicePrincipal",
+  "name": "http://ExternalDnsServicePrincipal",
+  "password": "93ad7844-34d6-46e2-bd26-87d2782541bf",
+  "tenant": "dae1fc7b-2a17-4706-af21-2f3d1efb6de8"
+}
+
+
+
+{
+  "canDelegate": null,
+  "id": "/subscriptions/e59b8928-47d9-474b-b240-106138563ad5/resourceGroups/domainrg/providers/Microsoft.Network/dnszones/revanthkube.ml/providers/Microsoft.Authorization/roleAssignments/78845878-e63f-4c58-869a-935f35401a6b",
+  "name": "78845878-e63f-4c58-869a-935f35401a6b",
+  "principalId": "af2132b2-4dbb-4c75-ab88-dc10b6cf1a21",
+  "principalType": "ServicePrincipal",
+  "resourceGroup": "domainrg",
+  "roleDefinitionId": "/subscriptions/e59b8928-47d9-474b-b240-106138563ad5/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
+  "scope": "/subscriptions/e59b8928-47d9-474b-b240-106138563ad5/resourceGroups/domainrg/providers/Microsoft.Network/dnszones/revanthkube.ml",
+  "type": "Microsoft.Authorization/roleAssignments"
+}
+
+# Creating service principal
+
+az login
+az account list
+# select the subscription
+az account set -s <subscriptionId GUID>
+
+Create the service principal
+
+az ad sp create-for-rbac -n ExternalDnsServicePrincipal
+{
+  "appId": "appId GUID",  --> aadClientId value 06b9f001-8ccb-48e0-a374-d87563ae6505
+  ...
+  "password": "password",  --> aadClientSecret value
+  "tenant": "AzureAD Tenant Id"  --> tenantId value
+}
+
+# find out the resource ids of the resource group where the dns zone is deployed, and the dns zone itself
+az group show --name externaldns
+az network dns zone show --name example.com -g externaldns
+
+
+
+# assign the rights to the created service principal, using the resource ids from previous step
+
+# 1. as a reader to the resource group
+> az role assignment create --role "Reader" --assignee <appId GUID> --scope <resource group resource id>  
+
+ az role assignment create --role "Reader" --assignee 3f6b741e-39c1-4ffd-8f18-9413ab4e58f3 --scope /subscriptions/e59b8928-47d9-474b-b240-106138563ad5/resourceGroups/domainRG
+
+# 2. as a contributor to DNS Zone itself
+> az role assignment create --role "Contributor" --assignee <appId GUID> --scope <dns zone resource id>  
+
+az role assignment create --role "Contributor" --assignee 3f6b741e-39c1-4ffd-8f18-9413ab4e58f3 --scope /subscriptions/e59b8928-47d9-474b-b240-106138563ad5/resourceGroups/domainrg/providers/Microsoft.Network/dnszones/revanthkube.ml
+
+$ kubectl create secret generic azure-config-file --from-file=/local/path/to/azure.json
+
+
+
+deploye ExternalDns and Nginx service
+
+
+
+Verify DNS record set443
+
+az network dns record-set a list -g externaldns -z example.com
+
+

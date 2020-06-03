@@ -1,0 +1,91 @@
+# Create a namespace for your ingress resources
+kubectl create namespace ingress-basic
+
+# Use Helm to deploy an NGINX ingress controller
+helm install nginx-ingress stable/nginx-ingress \
+    --namespace ingress-basic \
+    --set controller.replicaCount=2 \
+    --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
+    --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
+
+kubectl get service -l app=nginx-ingress --namespace ingress-basic
+
+#create TLS certificate
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out aks-ingress-tls.crt -keyout aks-ingress-tls.key  -subj "/CN=demo.azure.com/O=aks-ingress-tls"
+
+# Create kubernetes secret for TLS certificate
+
+kubectl create secret tls tls-secret --namespace ingress-basic --key aks-ingress-tls.key --cert aks-ingress-tls.crt
+
+# Deploy backend application
+
+kubectl apply -f postgres-deployment.yaml --namespace ingress-basic
+kubectl apply -f database-storage.yaml --namespace ingress-basic
+kubectl apply -f postgres-service.yaml --namespace ingress-basic
+kubectl apply -f db-keys.yaml --namespace ingress-basic
+
+# Check application status
+
+kubectl get all --namespace ingress-basic
+
+# Deploy chat application
+
+kubectl apply -f chatapp-deploy.yaml --namespace ingress-basic
+
+#Add a DNS route
+
+az network dns record-set a add-record --resource-group domainRG --zone-name revanthkube.ml --record-set-name '*' --ipv4-address 52.150.38.71
+
+{
+  "arecords": [
+    {
+      "ipv4Address": "52.191.99.121"
+    },
+    {
+      "ipv4Address": "52.150.38.71"
+    }
+  ],
+  "etag": "28540447-20af-42b0-9146-1b89f1915616",
+  "fqdn": "*.revanthkube.ml.",
+  "id": "/subscriptions/e59b8928-47d9-474b-b240-106138563ad5/resourceGroups/domainRG/providers/Microsoft.Network/dnszones/revanthkube.ml/A/*",
+  "metadata": null,
+  "name": "*",
+  "provisioningState": "Succeeded",
+  "resourceGroup": "domainRG",
+  "targetResource": {
+    "id": null
+  },
+  "ttl": 3600,
+  "type": "Microsoft.Network/dnszones/A"
+}
+
+-----------------------------*******************--------------------------------
+
+# Install the CustomResourceDefinition resources separately
+kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.13/deploy/manifests/00-crds.yaml
+
+# Label the ingress-basic namespace to disable resource validation
+kubectl label namespace ingress-basic cert-manager.io/disable-validation=true
+
+# Add the Jetstack Helm repository
+helm repo add jetstack https://charts.jetstack.io
+
+# Update your local Helm chart repository cache
+helm repo update
+
+# Install the cert-manager Helm chart
+helm install \
+  cert-manager \
+  --namespace ingress-basic \
+  --version v0.13.0 \
+  jetstack/cert-manager
+#App deploy
+kubectl apply -f aks-helloworld-one.yaml --namespace ingress-basic
+kubectl apply -f aks-helloworld-two.yaml --namespace ingress-basic
+# INGRESS service Deploy
+  kubectl apply -f chatapp-ingress.yaml --namespace ingress-basic
+
+#VERIFY certificate 
+
+kubectl get certificate --namespace ingress-basic

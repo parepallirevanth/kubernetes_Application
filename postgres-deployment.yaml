@@ -1,0 +1,41 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  selector:
+    matchLabels:
+      app: database1
+  replicas: 1 
+  template:
+    metadata:
+      labels:
+        app: database1
+    spec:
+      containers:
+      - name: database1
+        image: revanthacr.azurecr.io/postgres:v1
+        env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-keys
+                  key: user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-keys
+                  key: password
+
+            - name: POSTGRES_DB
+              value: dockerdb
+        ports:
+        - containerPort: 5432 
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: database1-volume
+      volumes:
+      - name: database1-volume
+        persistentVolumeClaim:
+          claimName: database1-claim

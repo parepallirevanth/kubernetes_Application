@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-keys
+type: Opaque
+data:
+  user: ZG9ja2VydXNlcg==
+  password: UmV2YW50aEAxOTk4
