@@ -1,3 +1,3 @@
 CREATE DATABASE dockerdb;
-CREATE USER dockeruser WITH PASSWORD 'Revanth@1998';
+CREATE USER dockeruser WITH PASSWORD '***********';
 GRANT ALL PRIVILEGES ON DATABASE "dockerdb" to dockeruser;
